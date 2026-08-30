@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#164e9b" />
+    <title>Stellaria — 天体運行シミュレーター</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="side-panel" aria-label="シミュレーションの操作">
+        <a class="brand" href="#top" aria-label="Stellaria の先頭へ">
+          <span class="brand-mark">✦</span>
+          <span>Stellaria<small>CELESTIAL ATLAS</small></span>
+        </a>
+
+        <section class="intro" id="top">
+          <p class="eyebrow">ORBITAL GARDEN / 01</p>
+          <h1>星々がめぐる<br /><em>小さな夜。</em></h1>
+          <p>
+            公転周期と離心率をもとに描く、手のひらサイズの太陽系。時間と視点を動かして、軌道の詩を探してみよう。
+          </p>
+        </section>
+
+        <section class="control-block" aria-labelledby="time-label">
+          <div class="section-heading">
+            <span class="heading-rune">✧</span>
+            <h2 id="time-label">時間の流れ</h2>
+          </div>
+          <button
+            class="play-button"
+            id="playButton"
+            type="button"
+            aria-pressed="true"
+          >
+            <span aria-hidden="true">Ⅱ</span> 時をとめる
+          </button>
+          <label class="range-control" for="speed">
+            <span
+              >時間の速さ
+              <output id="speedValue" for="speed">24 日 / 秒</output></span
+            >
+            <input id="speed" type="range" min="1" max="180" value="24" />
+          </label>
+          <label class="range-control" for="scale">
+            <span
+              >軌道の広がり
+              <output id="scaleValue" for="scale">1.0×</output></span
+            >
+            <input id="scale" type="range" min="50" max="155" value="100" />
+          </label>
+        </section>
+
+        <section class="body-block" aria-labelledby="focus-label">
+          <div class="section-heading">
+            <span class="heading-rune">✧</span>
+            <h2 id="focus-label">まなざす星</h2>
+          </div>
+          <div class="body-list" id="bodyList"></div>
+        </section>
+
+        <a
+          class="portal-link"
+          href="https://popopopman.github.io/"
+          target="_blank"
+          rel="noreferrer"
+          >POPOTOPIA へ <span aria-hidden="true">↗</span></a
+        >
+        <p class="side-note">
+          MODEL 1.0 <span>•</span> ORBITAL DATA IS ILLUSTRATIVE
+        </p>
+      </aside>
+
+      <section class="observatory" aria-label="操作可能な3D太陽系モデル">
+        <canvas
+          id="space"
+          aria-label="3D太陽系。ドラッグで視点を動かし、ホイールまたはピンチで拡大縮小します。"
+        ></canvas>
+        <div class="constellation-overlay" aria-hidden="true"></div>
+        <div class="viewport-hud" aria-hidden="true">
+          <div class="hud-top">
+            <p class="eyebrow">LIVE CELESTIAL MAP</p>
+            <div class="simulation-day">
+              DAY <strong id="dayReadout">0000.0</strong>
+            </div>
+          </div>
+          <div class="legend">
+            <i></i> 軌道面：黄道基準 <span>·</span> 相対縮尺
+          </div>
+        </div>
+        <div class="focus-card" aria-live="polite">
+          <span class="focus-card__kicker">NOW OBSERVING</span>
+          <strong id="focusName">太陽</strong>
+          <span id="focusDetail">すべての軌道の中心</span>
+        </div>
+        <p class="interaction-tip">ドラッグして星図をめくる <span>↗</span></p>
+        <p class="webgl-fallback" id="webglFallback" hidden>
+          この環境では 3D 表示を開始できませんでした。WebGL
+          を有効にして、もう一度お試しください。
+        </p>
+      </section>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
