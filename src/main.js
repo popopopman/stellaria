@@ -56,6 +56,137 @@ function startSimulation() {
   const orbitLines = new Map();
   const sphere = new THREE.SphereGeometry(1, 30, 22);
 
+  function makeRandom(seed) {
+    let value = seed;
+    return () => {
+      value = (value * 1664525 + 1013904223) >>> 0;
+      return value / 4294967296;
+    };
+  }
+
+  function makeSurface(body) {
+    const surface = document.createElement("canvas");
+    surface.width = 512;
+    surface.height = 256;
+    const context = surface.getContext("2d");
+    const random = makeRandom(
+      [...body.id].reduce((sum, letter) => sum + letter.charCodeAt(0), 0),
+    );
+    context.fillStyle = body.color;
+    context.fillRect(0, 0, surface.width, surface.height);
+
+    const circle = (color, amount, size) => {
+      context.fillStyle = color;
+      for (let index = 0; index < amount; index += 1) {
+        context.globalAlpha = 0.12 + random() * 0.24;
+        context.beginPath();
+        context.arc(
+          random() * surface.width,
+          random() * surface.height,
+          size * (0.45 + random()),
+          0,
+          Math.PI * 2,
+        );
+        context.fill();
+      }
+      context.globalAlpha = 1;
+    };
+    const bands = (colors, softness = 0) => {
+      colors.forEach((color, index) => {
+        context.fillStyle = color;
+        context.globalAlpha = 0.82;
+        context.fillRect(
+          0,
+          (index * surface.height) / colors.length,
+          surface.width,
+          surface.height / colors.length + 2,
+        );
+      });
+      context.globalAlpha = softness;
+      context.strokeStyle = "#ffffff";
+      context.lineWidth = 2;
+      for (let index = 0; index < 14; index += 1) {
+        context.beginPath();
+        context.moveTo(0, random() * surface.height);
+        context.bezierCurveTo(
+          surface.width * 0.3,
+          random() * surface.height,
+          surface.width * 0.7,
+          random() * surface.height,
+          surface.width,
+          random() * surface.height,
+        );
+        context.stroke();
+      }
+      context.globalAlpha = 1;
+    };
+
+    if (body.id === "sun") {
+      const glow = context.createRadialGradient(256, 128, 4, 256, 128, 210);
+      glow.addColorStop(0, "#fff4bc");
+      glow.addColorStop(0.52, "#ffcf63");
+      glow.addColorStop(1, "#e88731");
+      context.fillStyle = glow;
+      context.fillRect(0, 0, 512, 256);
+      circle("#d66024", 72, 13);
+      bands(["#ffb84f", "#ffd770", "#f49a35", "#ffdc72", "#e77f2d"], 0.1);
+    } else if (body.id === "earth") {
+      bands(["#1651a3", "#247cc4", "#2e9bd1", "#2169b4", "#174b9c"], 0.08);
+      circle("#4fa56f", 24, 22);
+      circle("#d4bd70", 14, 13);
+      context.strokeStyle = "rgba(255,255,255,.62)";
+      context.lineWidth = 7;
+      for (let index = 0; index < 9; index += 1) {
+        context.beginPath();
+        context.arc(
+          random() * 512,
+          random() * 256,
+          35 + random() * 65,
+          Math.PI * 1.05,
+          Math.PI * 1.75,
+        );
+        context.stroke();
+      }
+    } else if (body.id === "jupiter") {
+      bands(
+        [
+          "#e4bc8e",
+          "#a96643",
+          "#f0ce9b",
+          "#c28158",
+          "#e7bd89",
+          "#8e503b",
+          "#f4d4a4",
+        ],
+        0.12,
+      );
+      context.fillStyle = "#b84d36";
+      context.beginPath();
+      context.ellipse(352, 150, 49, 23, -0.12, 0, Math.PI * 2);
+      context.fill();
+    } else if (body.id === "saturn") {
+      bands(
+        ["#ead18d", "#c9a66b", "#f2dd9c", "#b9905e", "#edd69b", "#c29c67"],
+        0.08,
+      );
+    } else if (body.id === "venus") {
+      bands(["#c98c4b", "#f2c773", "#e7ae5a", "#f8d784", "#d7984f"], 0.16);
+    } else {
+      circle(
+        body.id === "mars" ? "#792d28" : "#4b4d58",
+        body.id === "mars" ? 42 : 58,
+        body.id === "mars" ? 10 : 7,
+      );
+      circle("#e1b079", body.id === "mars" ? 18 : 26, 4);
+    }
+
+    const texture = new THREE.CanvasTexture(surface);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    return texture;
+  }
+
   function makeStars() {
     const points = [];
     let seed = 511;
@@ -89,17 +220,35 @@ function startSimulation() {
   }
 
   function createPlanet(body) {
+    const surface = makeSurface(body);
     const material = new THREE.MeshStandardMaterial({
       color: body.color,
+      map: surface,
       roughness: body.id === "sun" ? 0.7 : 0.84,
       metalness: 0.02,
       emissive: body.id === "sun" ? body.color : 0x000000,
+      emissiveMap: body.id === "sun" ? surface : null,
       emissiveIntensity: body.id === "sun" ? 1.2 : 0,
     });
     const mesh = new THREE.Mesh(sphere, material);
     mesh.scale.setScalar(body.radius);
     planetMeshes.set(body.id, mesh);
     scene.add(mesh);
+    if (body.id === "sun" || body.id === "earth") {
+      const aura = new THREE.Mesh(
+        sphere,
+        new THREE.MeshBasicMaterial({
+          color: body.id === "sun" ? 0xffb74d : 0x75caff,
+          transparent: true,
+          opacity: body.id === "sun" ? 0.18 : 0.13,
+          side: THREE.BackSide,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        }),
+      );
+      aura.scale.setScalar(body.id === "sun" ? 1.22 : 1.08);
+      mesh.add(aura);
+    }
     if (body.id === "saturn") {
       const ring = new THREE.Mesh(
         new THREE.RingGeometry(1.32, 2.12, 72),
