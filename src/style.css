@@ -428,6 +428,9 @@ input[type="range"]::-moz-range-thumb {
     14px/1.7 system-ui,
     sans-serif;
 }
+.webgl-fallback[hidden] {
+  display: none;
+}
 
 @media (max-width: 760px) {
   body {
