@@ -75,10 +75,10 @@ function startSimulation() {
     context.fillStyle = body.color;
     context.fillRect(0, 0, surface.width, surface.height);
 
-    const circle = (color, amount, size) => {
+    const circle = (color, amount, size, alpha = 0.3) => {
       context.fillStyle = color;
       for (let index = 0; index < amount; index += 1) {
-        context.globalAlpha = 0.12 + random() * 0.24;
+        context.globalAlpha = alpha * (0.45 + random() * 0.55);
         context.beginPath();
         context.arc(
           random() * surface.width,
@@ -91,16 +91,33 @@ function startSimulation() {
       }
       context.globalAlpha = 1;
     };
-    const bands = (colors, softness = 0) => {
+    const bands = (colors, softness = 0, wobble = 12) => {
       colors.forEach((color, index) => {
         context.fillStyle = color;
         context.globalAlpha = 0.82;
-        context.fillRect(
-          0,
-          (index * surface.height) / colors.length,
-          surface.width,
-          surface.height / colors.length + 2,
+        context.beginPath();
+        const top = (index * surface.height) / colors.length;
+        const bottom = ((index + 1) * surface.height) / colors.length + 2;
+        context.moveTo(0, top + (random() - 0.5) * wobble);
+        context.bezierCurveTo(
+          180,
+          top + (random() - 0.5) * wobble,
+          340,
+          top + (random() - 0.5) * wobble,
+          512,
+          top + (random() - 0.5) * wobble,
         );
+        context.lineTo(512, bottom + (random() - 0.5) * wobble);
+        context.bezierCurveTo(
+          340,
+          bottom + (random() - 0.5) * wobble,
+          180,
+          bottom + (random() - 0.5) * wobble,
+          0,
+          bottom + (random() - 0.5) * wobble,
+        );
+        context.closePath();
+        context.fill();
       });
       context.globalAlpha = softness;
       context.strokeStyle = "#ffffff";
@@ -120,6 +137,48 @@ function startSimulation() {
       }
       context.globalAlpha = 1;
     };
+    const swirls = (color, amount, width, alpha = 0.25) => {
+      context.strokeStyle = color;
+      context.lineWidth = width;
+      context.lineCap = "round";
+      for (let index = 0; index < amount; index += 1) {
+        const y = random() * surface.height;
+        context.globalAlpha = alpha * (0.45 + random() * 0.55);
+        context.beginPath();
+        context.moveTo(-20, y);
+        context.bezierCurveTo(
+          120,
+          y - 35 + random() * 70,
+          340,
+          y - 35 + random() * 70,
+          532,
+          y - 22 + random() * 44,
+        );
+        context.stroke();
+      }
+      context.globalAlpha = 1;
+    };
+    const continent = (color, amount, size) => {
+      context.fillStyle = color;
+      for (let index = 0; index < amount; index += 1) {
+        const x = random() * surface.width;
+        const y = 25 + random() * (surface.height - 50);
+        context.globalAlpha = 0.72 + random() * 0.2;
+        context.beginPath();
+        for (let point = 0; point < 9; point += 1) {
+          const angle = (point / 9) * Math.PI * 2;
+          const radius = size * (0.45 + random() * 0.75);
+          const pointX = x + Math.cos(angle) * radius;
+          const pointY = y + Math.sin(angle) * radius * (0.5 + random() * 0.35);
+          point === 0
+            ? context.moveTo(pointX, pointY)
+            : context.lineTo(pointX, pointY);
+        }
+        context.closePath();
+        context.fill();
+      }
+      context.globalAlpha = 1;
+    };
 
     if (body.id === "sun") {
       const glow = context.createRadialGradient(256, 128, 4, 256, 128, 210);
@@ -128,25 +187,40 @@ function startSimulation() {
       glow.addColorStop(1, "#e88731");
       context.fillStyle = glow;
       context.fillRect(0, 0, 512, 256);
-      circle("#d66024", 72, 13);
-      bands(["#ffb84f", "#ffd770", "#f49a35", "#ffdc72", "#e77f2d"], 0.1);
-    } else if (body.id === "earth") {
-      bands(["#1651a3", "#247cc4", "#2e9bd1", "#2169b4", "#174b9c"], 0.08);
-      circle("#4fa56f", 24, 22);
-      circle("#d4bd70", 14, 13);
-      context.strokeStyle = "rgba(255,255,255,.62)";
-      context.lineWidth = 7;
-      for (let index = 0; index < 9; index += 1) {
+      circle("#d66024", 86, 13, 0.23);
+      circle("#fff0a0", 62, 8, 0.27);
+      swirls("#fff3b2", 24, 3, 0.3);
+      swirls("#d55b28", 18, 5, 0.22);
+      context.fillStyle = "#b94428";
+      context.globalAlpha = 0.62;
+      for (let index = 0; index < 12; index += 1) {
         context.beginPath();
-        context.arc(
+        context.ellipse(
           random() * 512,
           random() * 256,
-          35 + random() * 65,
-          Math.PI * 1.05,
-          Math.PI * 1.75,
+          7 + random() * 14,
+          3 + random() * 6,
+          random() * Math.PI,
+          0,
+          Math.PI * 2,
         );
-        context.stroke();
+        context.fill();
       }
+      context.globalAlpha = 1;
+    } else if (body.id === "earth") {
+      const ocean = context.createLinearGradient(0, 0, 512, 256);
+      ocean.addColorStop(0, "#123f91");
+      ocean.addColorStop(0.48, "#2d96ca");
+      ocean.addColorStop(1, "#174b9c");
+      context.fillStyle = ocean;
+      context.fillRect(0, 0, 512, 256);
+      continent("#4da16b", 12, 31);
+      continent("#c8b66c", 7, 17);
+      circle("#8fcf88", 38, 4, 0.2);
+      swirls("#f5fbff", 24, 3, 0.42);
+      context.fillStyle = "rgba(244, 251, 255, .75)";
+      context.fillRect(0, 0, 512, 18);
+      context.fillRect(0, 238, 512, 18);
     } else if (body.id === "jupiter") {
       bands(
         [
@@ -159,18 +233,29 @@ function startSimulation() {
           "#f4d4a4",
         ],
         0.12,
+        19,
       );
+      swirls("#fff0c8", 32, 3, 0.25);
+      swirls("#7e4337", 18, 4, 0.2);
       context.fillStyle = "#b84d36";
       context.beginPath();
       context.ellipse(352, 150, 49, 23, -0.12, 0, Math.PI * 2);
       context.fill();
+      context.strokeStyle = "#f3b078";
+      context.lineWidth = 3;
+      context.beginPath();
+      context.ellipse(352, 150, 57, 28, -0.12, 0, Math.PI * 2);
+      context.stroke();
     } else if (body.id === "saturn") {
       bands(
         ["#ead18d", "#c9a66b", "#f2dd9c", "#b9905e", "#edd69b", "#c29c67"],
         0.08,
+        11,
       );
+      swirls("#fff1be", 24, 2, 0.3);
     } else if (body.id === "venus") {
-      bands(["#c98c4b", "#f2c773", "#e7ae5a", "#f8d784", "#d7984f"], 0.16);
+      bands(["#c98c4b", "#f2c773", "#e7ae5a", "#f8d784", "#d7984f"], 0.16, 18);
+      swirls("#fff0ac", 28, 4, 0.35);
     } else {
       circle(
         body.id === "mars" ? "#792d28" : "#4b4d58",
@@ -178,6 +263,7 @@ function startSimulation() {
         body.id === "mars" ? 10 : 7,
       );
       circle("#e1b079", body.id === "mars" ? 18 : 26, 4);
+      swirls(body.id === "mars" ? "#f0a06b" : "#aab1c9", 18, 1.5, 0.25);
     }
 
     const texture = new THREE.CanvasTexture(surface);
@@ -219,6 +305,58 @@ function startSimulation() {
     );
   }
 
+  function addSolarCorona(mesh) {
+    const corona = new THREE.Group();
+    const random = makeRandom(1977);
+    const colors = [0xfff1a1, 0xffc95d, 0xff9254];
+    for (let index = 0; index < 24; index += 1) {
+      const longitude = random() * Math.PI * 2;
+      const latitude = (random() - 0.5) * 1.35;
+      const normal = new THREE.Vector3(
+        Math.cos(latitude) * Math.cos(longitude),
+        Math.sin(latitude),
+        Math.cos(latitude) * Math.sin(longitude),
+      );
+      const tangent = new THREE.Vector3(
+        -Math.sin(longitude),
+        0,
+        Math.cos(longitude),
+      );
+      const end = normal
+        .clone()
+        .applyAxisAngle(tangent, (random() - 0.5) * 0.72)
+        .normalize();
+      const lift = 0.38 + random() * 0.34;
+      const curve = new THREE.CubicBezierCurve3(
+        normal.clone().multiplyScalar(1.01),
+        normal
+          .clone()
+          .multiplyScalar(1 + lift)
+          .addScaledVector(tangent, 0.18),
+        end
+          .clone()
+          .multiplyScalar(1 + lift)
+          .addScaledVector(tangent, -0.18),
+        end.multiplyScalar(1.01),
+      );
+      const flare = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(curve.getPoints(12)),
+        new THREE.LineBasicMaterial({
+          color: colors[index % colors.length],
+          transparent: true,
+          opacity: 0.2 + random() * 0.25,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        }),
+      );
+      flare.userData.phase = random() * Math.PI * 2;
+      corona.add(flare);
+    }
+    corona.rotation.x = -0.28;
+    mesh.userData.corona = corona;
+    mesh.add(corona);
+  }
+
   function createPlanet(body) {
     const surface = makeSurface(body);
     const material = new THREE.MeshStandardMaterial({
@@ -232,6 +370,8 @@ function startSimulation() {
     });
     const mesh = new THREE.Mesh(sphere, material);
     mesh.scale.setScalar(body.radius);
+    mesh.userData.rotationSpeed =
+      body.id === "sun" ? 0.0018 : 0.0005 + body.radius * 0.0006;
     planetMeshes.set(body.id, mesh);
     scene.add(mesh);
     if (body.id === "sun" || body.id === "earth") {
@@ -249,6 +389,7 @@ function startSimulation() {
       aura.scale.setScalar(body.id === "sun" ? 1.22 : 1.08);
       mesh.add(aura);
     }
+    if (body.id === "sun") addSolarCorona(mesh);
     if (body.id === "saturn") {
       const ring = new THREE.Mesh(
         new THREE.RingGeometry(1.32, 2.12, 72),
@@ -291,12 +432,22 @@ function startSimulation() {
     });
   }
 
-  function updateBodies() {
-    BODIES.forEach((body) =>
-      planetMeshes
-        .get(body.id)
-        .position.set(...positionAtDay(body, state.day, state.scale)),
-    );
+  function updateBodies(elapsed) {
+    BODIES.forEach((body) => {
+      const mesh = planetMeshes.get(body.id);
+      mesh.position.set(...positionAtDay(body, state.day, state.scale));
+      mesh.rotation.y += mesh.userData.rotationSpeed;
+      if (mesh.userData.corona) {
+        const corona = mesh.userData.corona;
+        corona.rotation.y -= 0.0011;
+        corona.rotation.z = Math.sin(elapsed * 0.42) * 0.075;
+        corona.children.forEach((flare) => {
+          const pulse = 0.14 * Math.sin(elapsed * 1.7 + flare.userData.phase);
+          flare.scale.setScalar(1 + pulse);
+          flare.material.opacity = 0.3 + pulse;
+        });
+      }
+    });
   }
 
   function setFocus(id) {
@@ -364,8 +515,9 @@ function startSimulation() {
   const clock = new THREE.Clock();
   function animate() {
     const delta = Math.min(clock.getDelta(), 0.1);
+    const elapsed = clock.getElapsedTime();
     if (state.playing) state.day += delta * state.speed;
-    updateBodies();
+    updateBodies(elapsed);
     controls.target.lerp(planetMeshes.get(state.focus).position, 0.055);
     controls.update();
     dayReadout.textContent = formatSimulationDay(state.day);
