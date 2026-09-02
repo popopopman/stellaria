@@ -26,20 +26,50 @@ input {
 button {
   cursor: pointer;
 }
+[hidden] {
+  display: none !important;
+}
 .app-shell {
   display: grid;
   grid-template-columns: minmax(295px, 350px) 1fr;
-  min-height: 100svh;
+  height: 100svh;
+  min-height: 0;
 }
 .side-panel {
   z-index: 2;
   display: flex;
   flex-direction: column;
+  min-height: 0;
   padding: 25px clamp(20px, 2.6vw, 34px) 18px;
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(214, 231, 255, 0.56) transparent;
+  scrollbar-width: thin;
   border-right: 1px solid rgba(255, 255, 255, 0.3);
   background: #164e9b;
   box-shadow: 12px 0 42px rgba(5, 24, 78, 0.25);
+}
+.side-panel::-webkit-scrollbar {
+  width: 10px;
+}
+.side-panel::-webkit-scrollbar-track {
+  margin: 10px 0;
+  background: transparent;
+}
+.side-panel::-webkit-scrollbar-thumb {
+  min-height: 44px;
+  border: 3px solid #164e9b;
+  border-radius: 999px;
+  background: linear-gradient(
+      rgba(244, 249, 255, 0.82),
+      rgba(148, 193, 255, 0.56)
+    )
+    padding-box;
+  box-shadow: 0 0 8px rgba(195, 221, 255, 0.2);
+}
+.side-panel::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(#fff3ab, #edc448) padding-box;
+  box-shadow: 0 0 9px rgba(242, 212, 51, 0.35);
 }
 .brand {
   display: inline-flex;
@@ -125,6 +155,11 @@ h1 em {
   color: #f2d433;
   font-size: 12px;
 }
+.time-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
 .play-button {
   display: flex;
   align-items: center;
@@ -142,6 +177,10 @@ h1 em {
   transition:
     transform 180ms ease,
     box-shadow 180ms ease;
+}
+.reverse-button {
+  color: #164e9b;
+  background: #dce7ff;
 }
 .play-button:hover {
   transform: translate(1px, 1px);
@@ -164,6 +203,39 @@ h1 em {
   display: flex;
   justify-content: space-between;
   gap: 8px;
+}
+.date-control {
+  display: block;
+  margin-top: 17px;
+  color: #eff4ff;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+.date-control > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.date-control input,
+.date-control select {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 6px;
+  color: #fff;
+  background: rgba(13, 57, 135, 0.52);
+  font: inherit;
+  letter-spacing: 0.1em;
+}
+.date-control input:focus-visible,
+.date-control select:focus-visible {
+  outline: 2px solid #f2d433;
+  outline-offset: 2px;
+}
+.date-control input[aria-invalid="true"] {
+  border-color: #ff9c8e;
 }
 output {
   color: #f5da46;
@@ -280,6 +352,13 @@ input[type="range"]::-moz-range-thumb {
   padding: 0 3px;
   color: #f2d433;
 }
+.side-note a {
+  color: inherit;
+}
+.side-note a:focus-visible {
+  outline: 1px solid #fff;
+  outline-offset: 2px;
+}
 .observatory {
   position: relative;
   min-width: 0;
@@ -302,7 +381,7 @@ input[type="range"]::-moz-range-thumb {
 #space:active {
   cursor: grabbing;
 }
-.constellation-overlay {
+.star-speckle {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -361,6 +440,9 @@ input[type="range"]::-moz-range-thumb {
 .legend span {
   padding: 0 7px;
   color: #f2d433;
+}
+.legend b {
+  font-weight: inherit;
 }
 .focus-card {
   position: absolute;
@@ -438,6 +520,8 @@ input[type="range"]::-moz-range-thumb {
   }
   .app-shell {
     display: block;
+    height: auto;
+    min-height: 100svh;
   }
   .side-panel {
     min-height: auto;

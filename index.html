@@ -16,9 +16,10 @@
 
         <section class="intro" id="top">
           <p class="eyebrow">ORBITAL GARDEN / 01</p>
-          <h1>星々がめぐる<br /><em>小さな夜。</em></h1>
+          <h1>星々をたどる<br /><em>小さな宇宙。</em></h1>
           <p>
-            公転周期と離心率をもとに描く、手のひらサイズの太陽系。時間と視点を動かして、軌道の詩を探してみよう。
+            JPL
+            の近似軌道要素で描く、太陽中心の3D太陽系。日付を選び、視点を巡らせて、惑星たちの居場所をのぞいてみよう。
           </p>
         </section>
 
@@ -27,14 +28,24 @@
             <span class="heading-rune">✧</span>
             <h2 id="time-label">時間の流れ</h2>
           </div>
-          <button
-            class="play-button"
-            id="playButton"
-            type="button"
-            aria-pressed="true"
-          >
-            <span aria-hidden="true">Ⅱ</span> 時をとめる
-          </button>
+          <div class="time-buttons">
+            <button
+              class="play-button reverse-button"
+              id="reverseButton"
+              type="button"
+              aria-pressed="false"
+            >
+              <span aria-hidden="true">◀</span> 時をもどす
+            </button>
+            <button
+              class="play-button"
+              id="playButton"
+              type="button"
+              aria-pressed="false"
+            >
+              <span aria-hidden="true">▶</span> 時をうごかす
+            </button>
+          </div>
           <label class="range-control" for="speed">
             <span
               >時間の速さ
@@ -42,12 +53,49 @@
             >
             <input id="speed" type="range" min="1" max="180" value="24" />
           </label>
+          <label class="date-control" for="simulationDate">
+            <span
+              >対象日
+              <output id="ephemerisStatus" for="simulationDate"
+                >JPL 近似・1800–2050</output
+              ></span
+            >
+            <input
+              id="simulationDate"
+              type="text"
+              inputmode="numeric"
+              pattern="\d{4}/\d{2}/\d{2}"
+              placeholder="yyyy/mm/dd"
+              aria-describedby="ephemerisStatus"
+            />
+          </label>
+          <label class="date-control size-control" for="sizeMode">
+            <span
+              >天体の大きさ
+              <output id="sizeModeValue" for="sizeMode"
+                >観察用補正</output
+              ></span
+            >
+            <select id="sizeMode">
+              <option value="relative">実寸比（学術表示）</option>
+              <option value="enhanced" selected>観察用補正</option>
+            </select>
+          </label>
+          <label class="range-control" for="bodySize">
+            <span
+              >惑星の表示サイズ
+              <output id="bodySizeValue" for="bodySize"
+                >現在比 1.00×</output
+              ></span
+            >
+            <input id="bodySize" type="range" min="100" max="800" value="100" />
+          </label>
           <label class="range-control" for="scale">
             <span
               >軌道の広がり
               <output id="scaleValue" for="scale">1.0×</output></span
             >
-            <input id="scale" type="range" min="50" max="155" value="100" />
+            <input id="scale" type="range" min="100" max="155" value="100" />
           </label>
         </section>
 
@@ -67,25 +115,33 @@
           >POPOTOPIA へ <span aria-hidden="true">↗</span></a
         >
         <p class="side-note">
-          MODEL 1.0 <span>•</span> ORBITAL DATA IS ILLUSTRATIVE
+          <a
+            href="https://ssd.jpl.nasa.gov/planets/approx_pos.html"
+            target="_blank"
+            rel="noreferrer"
+            >JPL APPROX.</a
+          >
+          <span>•</span>
+          <span>•</span> J2000 ECLIPTIC
         </p>
       </aside>
 
-      <section class="observatory" aria-label="操作可能な3D太陽系モデル">
+      <section class="observatory" aria-label="操作可能な3D天体表示">
         <canvas
           id="space"
           aria-label="3D太陽系。ドラッグで視点を動かし、ホイールまたはピンチで拡大縮小します。"
         ></canvas>
-        <div class="constellation-overlay" aria-hidden="true"></div>
+        <div class="star-speckle" aria-hidden="true"></div>
         <div class="viewport-hud" aria-hidden="true">
           <div class="hud-top">
             <p class="eyebrow">LIVE CELESTIAL MAP</p>
             <div class="simulation-day">
-              DAY <strong id="dayReadout">0000.0</strong>
+              DATE <strong id="dayReadout">2000/01/01</strong>
             </div>
           </div>
           <div class="legend">
-            <i></i> 軌道面：黄道基準 <span>·</span> 相対縮尺
+            <i></i><span>軌道面：J2000 黄道基準 · 距離：AU 比</span>
+            <b id="sizeLegend">サイズ：観察用補正</b>
           </div>
         </div>
         <div class="focus-card" aria-live="polite">
@@ -93,13 +149,15 @@
           <strong id="focusName">太陽</strong>
           <span id="focusDetail">すべての軌道の中心</span>
         </div>
-        <p class="interaction-tip">ドラッグして星図をめくる <span>↗</span></p>
+        <p class="interaction-tip">
+          天体をクリックして説明を見る <span>↗</span> ドラッグで視点を動かす
+        </p>
         <p class="webgl-fallback" id="webglFallback" hidden>
           この環境では 3D 表示を開始できませんでした。WebGL
           を有効にして、もう一度お試しください。
         </p>
       </section>
     </main>
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
